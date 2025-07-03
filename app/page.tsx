@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Upload, Download, Shield, Zap, Globe, Users, ArrowRight, Check, Star, Menu } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import Link from "next/link"
 
 export default function TransferLanding() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -30,18 +31,14 @@ export default function TransferLanding() {
               <a href="#features" className="text-gray-300 hover:text-white transition-colors">
                 Features
               </a>
-              <a href="#pricing" className="text-gray-300 hover:text-white transition-colors">
-                Pricing
-              </a>
               <a href="#about" className="text-gray-300 hover:text-white transition-colors">
                 About
               </a>
-              <Button variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-800 bg-transparent">
-                Sign In
-              </Button>
-              <Button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
-                Get Started
-              </Button>
+              <Link href="/upload">
+                <Button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
+                  Get Started
+                </Button>
+              </Link>
             </div>
 
             {/* Mobile Navigation */}
@@ -56,21 +53,14 @@ export default function TransferLanding() {
                   <a href="#features" className="text-gray-300 hover:text-white transition-colors py-2">
                     Features
                   </a>
-                  <a href="#pricing" className="text-gray-300 hover:text-white transition-colors py-2">
-                    Pricing
-                  </a>
                   <a href="#about" className="text-gray-300 hover:text-white transition-colors py-2">
                     About
                   </a>
-                  <Button
-                    variant="outline"
-                    className="border-gray-600 text-gray-300 hover:bg-gray-800 mt-4 bg-transparent"
-                  >
-                    Sign In
-                  </Button>
-                  <Button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
-                    Get Started
-                  </Button>
+                  <Link href="/upload">
+                    <Button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
+                      Get Started
+                    </Button>
+                  </Link>
                 </div>
               </SheetContent>
             </Sheet>
@@ -96,20 +86,24 @@ export default function TransferLanding() {
               deleted after download or 7 days.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Button
-                size="lg"
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-lg px-8 py-4"
-              >
-                Start Transfer
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-gray-600 text-gray-300 hover:bg-gray-800 text-lg px-8 py-4 bg-transparent"
-              >
-                View Demo
-              </Button>
+              <Link href="/upload">
+                <Button
+                  size="lg"
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-lg px-8 py-4"
+                >
+                  Start Transfer
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              </Link>
+              <Link href="/upload">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-gray-600 text-gray-300 hover:bg-gray-800 text-lg px-8 py-4 bg-transparent"
+                >
+                  View Demo
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
@@ -246,125 +240,6 @@ export default function TransferLanding() {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="py-20 bg-gray-900/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-              Simple Pricing
-            </h2>
-            <p className="text-xl text-gray-400">Choose the plan that works for you</p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <Card className="bg-gray-800/50 border-gray-700 hover:bg-gray-800/70 transition-all duration-300">
-              <CardContent className="p-8">
-                <h3 className="text-2xl font-bold mb-2 text-white">Free</h3>
-                <div className="text-4xl font-bold mb-4 text-white">
-                  $0<span className="text-lg text-gray-400">/month</span>
-                </div>
-                <ul className="space-y-3 mb-8">
-                  <li className="flex items-center text-gray-300">
-                    <Check className="w-5 h-5 text-green-500 mr-2" />
-                    Up to 2GB file size
-                  </li>
-                  <li className="flex items-center text-gray-300">
-                    <Check className="w-5 h-5 text-green-500 mr-2" />
-                    7-day storage
-                  </li>
-                  <li className="flex items-center text-gray-300">
-                    <Check className="w-5 h-5 text-green-500 mr-2" />
-                    End-to-end encryption
-                  </li>
-                  <li className="flex items-center text-gray-300">
-                    <Check className="w-5 h-5 text-green-500 mr-2" />
-                    No registration required
-                  </li>
-                </ul>
-                <Button className="w-full bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800">
-                  Get Started
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-b from-blue-900/50 to-purple-900/50 border-blue-500/50 hover:border-blue-400/50 transition-all duration-300 relative">
-              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <Badge className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-                  <Star className="w-4 h-4 mr-1" />
-                  Most Popular
-                </Badge>
-              </div>
-              <CardContent className="p-8">
-                <h3 className="text-2xl font-bold mb-2 text-white">Pro</h3>
-                <div className="text-4xl font-bold mb-4 text-white">
-                  $9<span className="text-lg text-gray-400">/month</span>
-                </div>
-                <ul className="space-y-3 mb-8">
-                  <li className="flex items-center text-gray-300">
-                    <Check className="w-5 h-5 text-green-500 mr-2" />
-                    Up to 10GB file size
-                  </li>
-                  <li className="flex items-center text-gray-300">
-                    <Check className="w-5 h-5 text-green-500 mr-2" />
-                    30-day storage
-                  </li>
-                  <li className="flex items-center text-gray-300">
-                    <Check className="w-5 h-5 text-green-500 mr-2" />
-                    Password protection
-                  </li>
-                  <li className="flex items-center text-gray-300">
-                    <Check className="w-5 h-5 text-green-500 mr-2" />
-                    Download notifications
-                  </li>
-                  <li className="flex items-center text-gray-300">
-                    <Check className="w-5 h-5 text-green-500 mr-2" />
-                    Priority support
-                  </li>
-                </ul>
-                <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
-                  Upgrade to Pro
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gray-800/50 border-gray-700 hover:bg-gray-800/70 transition-all duration-300">
-              <CardContent className="p-8">
-                <h3 className="text-2xl font-bold mb-2 text-white">Enterprise</h3>
-                <div className="text-4xl font-bold mb-4 text-white">Custom</div>
-                <ul className="space-y-3 mb-8">
-                  <li className="flex items-center text-gray-300">
-                    <Check className="w-5 h-5 text-green-500 mr-2" />
-                    Unlimited file size
-                  </li>
-                  <li className="flex items-center text-gray-300">
-                    <Check className="w-5 h-5 text-green-500 mr-2" />
-                    Custom storage duration
-                  </li>
-                  <li className="flex items-center text-gray-300">
-                    <Check className="w-5 h-5 text-green-500 mr-2" />
-                    API access
-                  </li>
-                  <li className="flex items-center text-gray-300">
-                    <Check className="w-5 h-5 text-green-500 mr-2" />
-                    White-label solution
-                  </li>
-                  <li className="flex items-center text-gray-300">
-                    <Check className="w-5 h-5 text-green-500 mr-2" />
-                    24/7 dedicated support
-                  </li>
-                </ul>
-                <Button
-                  variant="outline"
-                  className="w-full border-gray-600 text-gray-300 hover:bg-gray-800 bg-transparent"
-                >
-                  Contact Sales
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
       {/* CTA Section */}
       <section className="py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -374,13 +249,15 @@ export default function TransferLanding() {
           <p className="text-xl text-gray-400 mb-8">
             Join thousands of users who trust our platform for secure file sharing
           </p>
-          <Button
-            size="lg"
-            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-lg px-8 py-4"
-          >
-            Start Your First Transfer
-            <ArrowRight className="ml-2 w-5 h-5" />
-          </Button>
+          <Link href="/upload">
+            <Button
+              size="lg"
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-lg px-8 py-4"
+            >
+              Start Your First Transfer
+              <ArrowRight className="ml-2 w-5 h-5" />
+            </Button>
+          </Link>
         </div>
       </section>
 
