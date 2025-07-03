@@ -71,7 +71,7 @@ export default function UploadPage() {
           if (updated[index].progress >= 100) {
             updated[index].progress = 100
             updated[index].status = 'completed'
-            updated[index].url = `https://transfer.jonte.lol/${generateToken()}/${file.name}`
+            updated[index].url = `https://transfer.jonte.lol/download?token=${generateToken()}&filename=${encodeURIComponent(file.name)}`
             clearInterval(interval)
           }
         }

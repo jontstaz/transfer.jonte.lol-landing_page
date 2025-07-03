@@ -1,9 +1,24 @@
+"use client"
+
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Upload, Home, Search, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 
 export default function NotFound() {
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  const handleGoBack = () => {
+    if (isClient && window.history.length > 1) {
+      window.history.back()
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
       {/* Navigation */}
@@ -111,17 +126,19 @@ export default function NotFound() {
             </CardContent>
           </Card>
 
-          {/* Back Button */}
-          <div className="mt-8">
-            <Button 
-              variant="ghost" 
-              onClick={() => window.history.back()}
-              className="text-gray-400 hover:text-white"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Go Back
-            </Button>
-          </div>
+          {/* Back Button - Only show on client side */}
+          {isClient && (
+            <div className="mt-8">
+              <Button 
+                variant="ghost" 
+                onClick={handleGoBack}
+                className="text-gray-400 hover:text-white"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Go Back
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>

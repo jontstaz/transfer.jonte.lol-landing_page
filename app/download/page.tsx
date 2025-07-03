@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -35,7 +35,7 @@ interface FileInfo {
   qrCode: string
 }
 
-export default function DownloadPage() {
+function DownloadPageContent() {
   const searchParams = useSearchParams()
   const [fileInfo, setFileInfo] = useState<FileInfo | null>(null)
   const [deleteToken, setDeleteToken] = useState("")
@@ -43,10 +43,16 @@ export default function DownloadPage() {
   const [copied, setCopied] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isClient, setIsClient] = useState(false)
 
   // Extract token and filename from URL parameters or pathname
   const token = searchParams.get('token') || extractFromPath().token
   const filename = searchParams.get('filename') || extractFromPath().filename
+
+  // Set client-side flag
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   function extractFromPath() {
     if (typeof window === 'undefined') return { token: '', filename: '' }
@@ -72,9 +78,11 @@ export default function DownloadPage() {
   }
 
   useEffect(() => {
-    if (!token || !filename) {
-      setError("Invalid download link. Token and filename are required.")
-      setIsLoading(false)
+    if (!token || !filename || !isClient) {
+      if (isClient) {
+        setError("Invalid download link. Token and filename are required.")
+        setIsLoading(false)
+      }
       return
     }
 
@@ -105,7 +113,7 @@ export default function DownloadPage() {
     }
 
     fetchFileInfo()
-  }, [token, filename])
+  }, [token, filename, isClient])
 
   const getContentType = (filename: string) => {
     const ext = filename.split('.').pop()?.toLowerCase()
@@ -191,6 +199,7 @@ export default function DownloadPage() {
   }
 
   const copyToClipboard = async () => {
+    if (!isClient) return
     const url = `${window.location.origin}/download?token=${token}&filename=${encodeURIComponent(filename)}`
     await navigator.clipboard.writeText(url)
     setCopied(true)
@@ -198,6 +207,7 @@ export default function DownloadPage() {
   }
 
   const handleDownload = () => {
+    if (!isClient) return
     // In a real app, this would trigger the actual download
     const downloadUrl = `${window.location.origin}/api/download/${token}/${filename}`
     window.open(downloadUrl, '_blank')
@@ -209,6 +219,18 @@ export default function DownloadPage() {
       alert('File deletion requested (demo)')
       setShowDeleteModal(false)
     }
+  }
+
+  // Don't render interactive content during SSR
+  if (!isClient) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading download page...</p>
+        </div>
+      </div>
+    )
   }
 
   if (isLoading) {
@@ -355,42 +377,44 @@ export default function DownloadPage() {
                 </div>
               </div>
 
-              <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
-                <DialogTrigger asChild>
-                  <Button 
-                    variant="destructive" 
-                    className="w-full"
-                    size="lg"
-                  >
-                    <Trash2 className="w-5 h-5 mr-2" />
-                    Delete File
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="bg-gray-800 border-gray-700">
-                  <DialogHeader>
-                    <DialogTitle>Delete File</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <p className="text-gray-400">
-                      Enter the deletion token to permanently delete this file. This action cannot be undone.
-                    </p>
-                    <Input
-                      placeholder="Deletion token"
-                      value={deleteToken}
-                      onChange={(e) => setDeleteToken(e.target.value)}
-                      className="bg-gray-700 border-gray-600"
-                    />
-                    <div className="flex gap-2">
-                      <Button variant="outline" onClick={() => setShowDeleteModal(false)} className="flex-1">
-                        Cancel
-                      </Button>
-                      <Button variant="destructive" onClick={handleDelete} className="flex-1">
-                        Delete
-                      </Button>
+              {isClient && (
+                <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant="destructive" 
+                      className="w-full"
+                      size="lg"
+                    >
+                      <Trash2 className="w-5 h-5 mr-2" />
+                      Delete File
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="bg-gray-800 border-gray-700">
+                    <DialogHeader>
+                      <DialogTitle>Delete File</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <p className="text-gray-400">
+                        Enter the deletion token to permanently delete this file. This action cannot be undone.
+                      </p>
+                      <Input
+                        placeholder="Deletion token"
+                        value={deleteToken}
+                        onChange={(e) => setDeleteToken(e.target.value)}
+                        className="bg-gray-700 border-gray-600"
+                      />
+                      <div className="flex gap-2">
+                        <Button variant="outline" onClick={() => setShowDeleteModal(false)} className="flex-1">
+                          Cancel
+                        </Button>
+                        <Button variant="destructive" onClick={handleDelete} className="flex-1">
+                          Delete
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
+                  </DialogContent>
+                </Dialog>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -434,5 +458,24 @@ export default function DownloadPage() {
         </Card>
       </div>
     </div>
+  )
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-gray-400">Loading download page...</p>
+      </div>
+    </div>
+  )
+}
+
+export default function DownloadPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <DownloadPageContent />
+    </Suspense>
   )
 } 
