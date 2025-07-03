@@ -16,15 +16,13 @@ import {
   Music, 
   Archive,
   Shield,
-  Clock,
-  HardDrive,
   ArrowLeft,
   Copy,
   Check,
   AlertTriangle
 } from "lucide-react"
 import Link from "next/link"
-import { useParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 
 interface FileInfo {
   filename: string
@@ -38,7 +36,7 @@ interface FileInfo {
 }
 
 export default function DownloadPage() {
-  const params = useParams()
+  const searchParams = useSearchParams()
   const [fileInfo, setFileInfo] = useState<FileInfo | null>(null)
   const [deleteToken, setDeleteToken] = useState("")
   const [showDeleteModal, setShowDeleteModal] = useState(false)
@@ -46,10 +44,40 @@ export default function DownloadPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const token = params.token as string
-  const filename = params.filename as string
+  // Extract token and filename from URL parameters or pathname
+  const token = searchParams.get('token') || extractFromPath().token
+  const filename = searchParams.get('filename') || extractFromPath().filename
+
+  function extractFromPath() {
+    if (typeof window === 'undefined') return { token: '', filename: '' }
+    
+    const path = window.location.pathname
+    const hash = window.location.hash
+    
+    // Try to extract from hash first (for #/token/filename format)
+    if (hash.includes('/')) {
+      const parts = hash.substring(1).split('/')
+      if (parts.length >= 2) {
+        return { token: parts[0], filename: parts[1] }
+      }
+    }
+    
+    // Try to extract from pathname
+    const pathParts = path.split('/').filter(Boolean)
+    if (pathParts.length >= 3 && pathParts[0] === 'download') {
+      return { token: pathParts[1], filename: pathParts[2] }
+    }
+    
+    return { token: '', filename: '' }
+  }
 
   useEffect(() => {
+    if (!token || !filename) {
+      setError("Invalid download link. Token and filename are required.")
+      setIsLoading(false)
+      return
+    }
+
     // Simulate fetching file info
     const fetchFileInfo = async () => {
       setIsLoading(true)
@@ -77,7 +105,7 @@ export default function DownloadPage() {
     }
 
     fetchFileInfo()
-  }, [filename])
+  }, [token, filename])
 
   const getContentType = (filename: string) => {
     const ext = filename.split('.').pop()?.toLowerCase()
@@ -163,7 +191,7 @@ export default function DownloadPage() {
   }
 
   const copyToClipboard = async () => {
-    const url = `${window.location.origin}/download/${token}/${filename}`
+    const url = `${window.location.origin}/download?token=${token}&filename=${encodeURIComponent(filename)}`
     await navigator.clipboard.writeText(url)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
@@ -201,6 +229,9 @@ export default function DownloadPage() {
           <AlertTriangle className="w-16 h-16 text-red-400 mx-auto mb-4" />
           <h1 className="text-2xl font-bold mb-2">File Not Found</h1>
           <p className="text-gray-400 mb-6">{error || "The requested file could not be found or has expired."}</p>
+          <p className="text-sm text-gray-500 mb-6">
+            Make sure you have the correct download link with token and filename parameters.
+          </p>
           <Link href="/">
             <Button className="bg-gradient-to-r from-blue-500 to-purple-600">
               Return Home
@@ -212,7 +243,7 @@ export default function DownloadPage() {
   }
 
   const FileIconComponent = getFileIcon(fileInfo.contentType)
-  const downloadUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/download/${token}/${filename}`
+  const downloadUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/download?token=${token}&filename=${encodeURIComponent(filename)}`
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
