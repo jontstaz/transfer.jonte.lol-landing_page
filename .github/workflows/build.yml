@@ -50,13 +50,56 @@ jobs:
       continue-on-error: true
     
     - name: Build static files
-      run: npm run build
+      run: |
+        if npm run | grep -q "build"; then
+          echo "Running Next.js build..."
+          npm run build
+          
+          # Check if we need to run static export
+          if [ -f "next.config.mjs" ] || [ -f "next.config.js" ]; then
+            echo "Next.js config found, running static export..."
+            npx next export
+          else
+            echo "No Next.js config found, creating static export..."
+            npx next export
+          fi
+        else
+          echo "No build script found in package.json"
+          echo "Available scripts:"
+          npm run
+          exit 1
+        fi
+    
+    - name: Check build output
+      run: |
+        echo "Checking for build output directories..."
+        if [ -d "out" ]; then
+          echo "Found out/ directory (Next.js static export)"
+          ls -la out/
+          echo "BUILD_DIR=out" >> $GITHUB_ENV
+        elif [ -d ".next" ]; then
+          echo "Found .next/ directory (Next.js build output)"
+          ls -la .next/
+          echo "BUILD_DIR=.next" >> $GITHUB_ENV
+        elif [ -d "build" ]; then
+          echo "Found build/ directory"
+          ls -la build/
+          echo "BUILD_DIR=build" >> $GITHUB_ENV
+        elif [ -d "dist" ]; then
+          echo "Found dist/ directory"
+          ls -la dist/
+          echo "BUILD_DIR=dist" >> $GITHUB_ENV
+        else
+          echo "No build output directory found. Checking current directory:"
+          ls -la
+          echo "BUILD_DIR=." >> $GITHUB_ENV
+        fi
     
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
         name: build-files-node-${{ matrix.node-version }}
-        path: build/
+        path: ${{ env.BUILD_DIR }}/
         retention-days: 30
     
     - name: Upload coverage reports
@@ -80,11 +123,11 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: build-files-node-20.x
-        path: build/
+        path: build-output/
     
     - name: Create ZIP archive
       run: |
-        cd build
+        cd build-output
         zip -r ../static-build-${{ github.sha }}.zip .
         cd ..
     
@@ -134,7 +177,7 @@ jobs:
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./build
+        publish_dir: ./build-output
         # cname: your-domain.com  # Optional: replace with your custom domain
     
     # Alternative deployment options (uncomment as needed):
