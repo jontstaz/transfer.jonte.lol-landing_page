@@ -1,0 +1,159 @@
+name: Build React Static Files
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run tests
+      run: npm test -- --coverage --watchAll=false
+    
+    - name: Build static files
+      run: npm run build
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-files-node-${{ matrix.node-version }}
+        path: build/
+        retention-days: 30
+    
+    - name: Upload coverage reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-reports-node-${{ matrix.node-version }}
+        path: coverage/
+        retention-days: 7
+
+  create-release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: build-files-node-20.x
+        path: build/
+    
+    - name: Create ZIP archive
+      run: |
+        cd build
+        zip -r ../static-build-${{ github.sha }}.zip .
+        cd ..
+    
+    - name: Generate release tag
+      id: tag
+      run: |
+        timestamp=$(date +%Y%m%d-%H%M%S)
+        echo "tag=build-${timestamp}" >> $GITHUB_OUTPUT
+        echo "name=Static Build ${timestamp}" >> $GITHUB_OUTPUT
+    
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.tag.outputs.tag }}
+        release_name: ${{ steps.tag.outputs.name }}
+        body: |
+          🚀 **Automated Static Build**
+          
+          **Commit:** ${{ github.sha }}
+          **Branch:** ${{ github.ref_name }}
+          **Build Date:** ${{ github.run_number }}
+          
+          This release contains the static web files built from the latest commit.
+          
+          **Download:** Click on `static-build-${{ github.sha }}.zip` below to download the static files.
+          
+          ---
+          *Generated automatically by GitHub Actions*
+        draft: false
+        prerelease: false
+    
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./static-build-${{ github.sha }}.zip
+        asset_name: static-build-${{ github.sha }}.zip
+        asset_content_type: application/zip
+    
+    # Optional: Also keep the GitHub Pages deployment
+    - name: Deploy to GitHub Pages (Optional)
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./build
+        # cname: your-domain.com  # Optional: replace with your custom domain
+    
+    # Alternative deployment options (uncomment as needed):
+    
+    # Deploy to AWS S3
+    # - name: Deploy to S3
+    #   uses: aws-actions/configure-aws-credentials@v4
+    #   with:
+    #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    #     aws-region: us-east-1
+    # 
+    # - name: Sync to S3
+    #   run: aws s3 sync build/ s3://your-bucket-name --delete
+    
+    # Deploy to Netlify
+    # - name: Deploy to Netlify
+    #   uses: nwtgck/actions-netlify@v3
+    #   with:
+    #     publish-dir: './build'
+    #     production-branch: main
+    #     github-token: ${{ secrets.GITHUB_TOKEN }}
+    #     deploy-message: "Deploy from GitHub Actions"
+    #   env:
+    #     NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+    #     NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+
+  # Optional: Security scanning
+  security:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Run npm audit
+      run: npm audit --audit-level=moderate
+    
+    - name: Run security scan
+      uses: securecodewarrior/github-action-add-sarif@v1
+      with:
+        sarif-file: 'security-scan-results.sarif'
+      continue-on-error: true
