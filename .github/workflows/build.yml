@@ -59,9 +59,7 @@ jobs:
             echo "Found next.config.mjs, checking for static export config..."
             if ! grep -q "output.*export" next.config.mjs; then
               echo "Adding output: 'export' to next.config.mjs for static export..."
-              # Create a backup
               cp next.config.mjs next.config.mjs.backup
-              # Add output: 'export' to the config
               sed -i "s/const nextConfig = {/const nextConfig = {\n  output: 'export',/" next.config.mjs
               echo "Updated next.config.mjs:"
               cat next.config.mjs
@@ -70,9 +68,7 @@ jobs:
             echo "Found next.config.js, checking for static export config..."
             if ! grep -q "output.*export" next.config.js; then
               echo "Adding output: 'export' to next.config.js for static export..."
-              # Create a backup
               cp next.config.js next.config.js.backup
-              # Add output: 'export' to the config
               sed -i "s/const nextConfig = {/const nextConfig = {\n  output: 'export',/" next.config.js
               echo "Updated next.config.js:"
               cat next.config.js
@@ -80,19 +76,18 @@ jobs:
           else
             echo "No Next.js config found, creating next.config.js with static export..."
             cat > next.config.js << 'EOF'
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  output: 'export',
-  images: {
-    unoptimized: true,
-  },
-}
-
-module.exports = nextConfig
-EOF
+        /** @type {import('next').NextConfig} */
+        const nextConfig = {
+          output: 'export',
+          images: {
+            unoptimized: true,
+          },
+        }
+        
+        module.exports = nextConfig
+        EOF
           fi
           
-          # Run the build (this will now create static files)
           npm run build
         else
           echo "No build script found in package.json"
