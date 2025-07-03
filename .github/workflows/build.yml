@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -166,12 +171,10 @@ jobs:
     
     - name: Create Release
       id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ steps.tag.outputs.tag }}
-        release_name: ${{ steps.tag.outputs.name }}
+        name: ${{ steps.tag.outputs.name }}
         body: |
           🚀 **Automated Static Build**
           
@@ -187,16 +190,8 @@ jobs:
           *Generated automatically by GitHub Actions*
         draft: false
         prerelease: false
-    
-    - name: Upload Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./static-build-${{ github.sha }}.zip
-        asset_name: static-build-${{ github.sha }}.zip
-        asset_content_type: application/zip
+        files: |
+          static-build-${{ github.sha }}.zip
     
     # Optional: Also keep the GitHub Pages deployment
     - name: Deploy to GitHub Pages (Optional)
